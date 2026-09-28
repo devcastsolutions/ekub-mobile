@@ -115,7 +115,7 @@ UI event  ->  Bloc  ->  UseCase  ->  Repository (contract)  ->  DataSource (Dio)
 ### Prerequisites
 
 - Flutter SDK 3.x
-- A running instance of the [Ekub backend](https://github.com/biruksolomon/ekub-backend)
+- A running instance of the [Ekub backend](https://github.com/devcastsolutions/ekub-backend)
 
 ### Run locally
 
