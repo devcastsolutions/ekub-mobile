@@ -98,7 +98,7 @@ class _AuthFormState extends State<AuthForm> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (!widget.isLogin) ...[
                   // Full name
@@ -199,7 +199,7 @@ class _AuthFormState extends State<AuthForm> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
                                 'Biometric Unlock',
@@ -244,7 +244,7 @@ class _AuthFormState extends State<AuthForm> {
 
                   // Agreement checkbox
                   Row(
-                    crossAxisAlignment: CrossAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
                         width: 24,

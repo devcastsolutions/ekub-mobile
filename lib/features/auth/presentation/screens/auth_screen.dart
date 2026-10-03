@@ -224,7 +224,7 @@ class _AuthScreenState extends State<AuthScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
                 'Merkato Traders Circle',
@@ -257,7 +257,7 @@ class _AuthScreenState extends State<AuthScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(
-            crossAlignment: CrossAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
                 'Join 14,000+ verified members',

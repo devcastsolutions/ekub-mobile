@@ -4,6 +4,7 @@ class AppColors {
   static const Color primary = Color(0xFF144D37); // Deep Forest Emerald
   static const Color primaryDark = Color(0xFF0D3828);
   static const Color accent = Color(0xFFC8663D); // Terracotta Rust
+  static const Color secondary = Color(0xFFC8663D); // Alias for accent
   static const Color accentLight = Color(0xFFFFF3EE);
   static const Color background = Color(0xFFF4F6F5); // Soft Mint Grey
   static const Color surface = Colors.white;
