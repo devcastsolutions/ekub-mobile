@@ -33,7 +33,7 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Merkato Traders Circle',
@@ -44,17 +44,17 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
               ),
             ),
             Row(
-              children: const [
+              children: [
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.accent,
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: 6),
-                Text(
+                const SizedBox(width: 6),
+                const Text(
                   'Active • Round 7 of 12',
                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.normal),
                 ),
@@ -84,7 +84,7 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
             child: Column(
-              crossAxisAlignment: CrossAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Hero Dark Green Container
                 Container(
@@ -94,7 +94,7 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
-                    crossAlignment: CrossAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Top Row Badges
                       Row(
@@ -207,7 +207,7 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
-                                crossAlignment: CrossAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: const [
                                   Text(
                                     'Recipient this round',
@@ -309,7 +309,7 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
-                          crossAlignment: CrossAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
                             Text(
                               'Your Round 7 Deposit',

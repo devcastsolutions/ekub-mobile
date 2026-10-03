@@ -49,7 +49,7 @@ class GroupCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header row
                 Row(
@@ -90,7 +90,7 @@ class GroupCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
-                        crossAxisAlignment: CrossAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Payout Pot', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           const SizedBox(height: 2),
@@ -105,7 +105,7 @@ class GroupCard extends StatelessWidget {
                         ],
                       ),
                       Column(
-                        crossAlignment: CrossAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: const [
                           Text('Round 7 of 12', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           SizedBox(height: 2),
@@ -170,7 +170,7 @@ class GroupCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -245,7 +245,7 @@ class GroupCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

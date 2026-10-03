@@ -53,7 +53,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                           const EkubLogo(size: 38),
                           const SizedBox(width: 10),
                           Column(
-                            crossAlignment: CrossAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
                                 'TENA YISTELEGN,',
@@ -147,7 +147,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                           borderRadius: BorderRadius.circular(22),
                         ),
                         child: Column(
-                          crossAlignment: CrossAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
