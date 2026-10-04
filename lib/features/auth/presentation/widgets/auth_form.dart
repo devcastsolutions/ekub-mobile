@@ -314,6 +314,71 @@ class _AuthFormState extends State<AuthForm> {
                           ),
                   ),
                 ),
+
+                const SizedBox(height: 16),
+
+                // Divider OR
+                Row(
+                  children: const [
+                    Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Google OAuth2 Sign-In Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () => context.read<AuthBloc>().add(const GoogleSignInRequested()),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.border, width: 1.2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      backgroundColor: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.network(
+                          'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+                          height: 20,
+                          width: 20,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.g_mobiledata,
+                            size: 26,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Continue with Google',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

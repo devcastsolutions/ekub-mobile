@@ -33,3 +33,7 @@ class RegisterSubmitted extends AuthEvent {
   @override
   List<Object?> get props => [name, email, phone, password, role];
 }
+
+class GoogleSignInRequested extends AuthEvent {
+  const GoogleSignInRequested();
+}

@@ -11,4 +11,5 @@ abstract class AuthRepository {
     required String password,
     required String role,
   });
+  Future<Either<Failure, String>> googleSignIn();
 }

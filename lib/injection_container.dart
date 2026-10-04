@@ -6,6 +6,7 @@ import 'core/network/network_info.dart';
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/domain/usecases/google_sign_in_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -47,9 +48,14 @@ Future<void> init() async {
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
 
   // Features - Auth
-  sl.registerFactory(() => AuthBloc(loginUseCase: sl(), registerUseCase: sl()));
+  sl.registerFactory(() => AuthBloc(
+        loginUseCase: sl(),
+        registerUseCase: sl(),
+        googleSignInUseCase: sl(),
+      ));
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
+  sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
   sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl(sl()));
 
