@@ -46,6 +46,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'role': role,
       },
     );
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    final data = response.data as Map<String, dynamic>;
+    if (data.containsKey('access_token')) {
+      final token = data['access_token'] as String;
+      apiClient.setAuthToken(token);
+    }
+    final userData = data.containsKey('user') ? data['user'] as Map<String, dynamic> : data;
+    return UserModel.fromJson(userData);
   }
 }
