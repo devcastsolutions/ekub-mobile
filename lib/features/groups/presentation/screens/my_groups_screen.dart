@@ -30,7 +30,6 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -118,7 +117,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: frequency,
+                initialValue: frequency,
                 decoration: const InputDecoration(labelText: 'Frequency'),
                 items: const [
                   DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
@@ -152,6 +151,10 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
             ),
           ],
         );
+      },
+    );
+  }
+
   Widget _buildGroupsTab(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
@@ -203,7 +206,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 22),
@@ -289,7 +292,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text(
@@ -331,7 +334,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
+                            color: Colors.white.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -575,7 +578,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
-          CircleAvatar(backgroundColor: iconColor.withOpacity(0.12), child: Icon(icon, color: iconColor, size: 20)),
+          CircleAvatar(backgroundColor: iconColor.withValues(alpha: 0.12), child: Icon(icon, color: iconColor, size: 20)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -614,7 +617,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
 
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
