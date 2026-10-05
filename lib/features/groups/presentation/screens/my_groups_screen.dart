@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/ekub_logo.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/group.dart';
 import '../bloc/group_list_bloc.dart';
 import '../bloc/group_list_event.dart';
@@ -226,17 +228,30 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                         ],
                       ),
                       const SizedBox(width: 10),
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Color(0xFFD1E2C4),
-                        child: Text(
-                          'ST',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          String initials = 'EK';
+                          if (state is RegisterSuccess && state.user.name.isNotEmpty) {
+                            final parts = state.user.name.trim().split(' ');
+                            if (parts.length >= 2) {
+                              initials = '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+                            } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
+                              initials = parts[0][0].toUpperCase();
+                            }
+                          }
+                          return CircleAvatar(
+                            radius: 18,
+                            backgroundColor: const Color(0xFFD1E2C4),
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -245,19 +260,17 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
             ),
           ),
 
-          // Active Portfolio Card Banner
+          // Active Portfolio Card Banner (Real Data)
           SliverToBoxAdapter(
             child: BlocBuilder<GroupListBloc, GroupListState>(
               builder: (context, state) {
-                double activeCommitment = 7500.0;
-                int activeCount = 3;
+                double activeCommitment = 0.0;
+                int activeCount = 0;
 
-                if (state is GroupListLoaded && state.groups.isNotEmpty) {
+                if (state is GroupListLoaded) {
                   final activeGroups = state.groups.where((g) => g.status.toLowerCase() == 'active').toList();
-                  if (activeGroups.isNotEmpty) {
-                    activeCount = activeGroups.length;
-                    activeCommitment = activeGroups.fold(0.0, (sum, g) => sum + g.contributionAmount);
-                  }
+                  activeCount = activeGroups.length;
+                  activeCommitment = activeGroups.fold(0.0, (sum, g) => sum + g.contributionAmount);
                 }
 
                 return Padding(
@@ -339,12 +352,18 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.alarm, color: Colors.white, size: 16),
-                              SizedBox(width: 8),
+                            children: [
+                              Icon(
+                                activeCount > 0 ? Icons.alarm : Icons.info_outline,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
                               Text(
-                                'Next draw in 2 days',
-                                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                                activeCount > 0
+                                    ? '$activeCount active circle${activeCount > 1 ? 's' : ''} in rotation'
+                                    : 'No active draw scheduled',
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -391,7 +410,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
             ),
           ),
 
-          // Group Cards List from Backend
+          // Group Cards List from Backend / Real Data & Empty States
           BlocBuilder<GroupListBloc, GroupListState>(
             builder: (context, state) {
               if (state is GroupListLoading) {
@@ -409,20 +428,7 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
                 final groups = _filterGroups(state.groups);
                 if (groups.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.all(40),
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: const [
-                          Icon(Icons.diversity_3_outlined, size: 48, color: AppColors.textMuted),
-                          SizedBox(height: 12),
-                          Text(
-                            'No circles match this filter.',
-                            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _buildGroupsEmptyState(_selectedFilterIndex),
                   );
                 }
 
@@ -457,62 +463,190 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
     );
   }
 
-  Widget _buildPayoutsTab(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
+  Widget _buildGroupsEmptyState(int filterIndex) {
+    IconData icon;
+    String title;
+    String subtitle;
+
+    switch (filterIndex) {
+      case 1:
+        icon = Icons.play_circle_outline;
+        title = 'No Active Circles';
+        subtitle = 'None of your circles are currently active.';
+        break;
+      case 2:
+        icon = Icons.hourglass_empty;
+        title = 'No Pending Circles';
+        subtitle = 'No circles waiting for members to join.';
+        break;
+      case 3:
+        icon = Icons.task_alt;
+        title = 'No Completed Circles';
+        subtitle = 'No completed circle records found.';
+        break;
+      default:
+        icon = Icons.groups_outlined;
+        title = 'No Ekub Circles Yet';
+        subtitle = 'You have not joined or created any Ekub circles. Tap "+ New group" below to start one!';
+        break;
+    }
+
+    return _buildEmptyStateWidget(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+    );
+  }
+
+  Widget _buildEmptyStateWidget({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: const [
-              Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 28),
-              SizedBox(width: 10),
-              Text('Payout Schedule', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-            ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 40, color: AppColors.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
-          const Text('Track your turns and upcoming rotating community payouts', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 20),
-
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFF1B4931)]),
-              borderRadius: BorderRadius.circular(20),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPayoutsTab(BuildContext context) {
+    return BlocBuilder<GroupListBloc, GroupListState>(
+      builder: (context, state) {
+        List<Group> activeGroups = [];
+        if (state is GroupListLoaded) {
+          activeGroups = state.groups.where((g) => g.status.toLowerCase() == 'active').toList();
+        }
+
+        final hasActive = activeGroups.isNotEmpty;
+        final topGroup = hasActive ? activeGroups.first : null;
+        final topPayoutPot = hasActive ? (topGroup!.contributionAmount * 10).toInt() : 0;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 28),
+                  SizedBox(width: 10),
+                  Text('Payout Schedule', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text('Track your turns and upcoming rotating community payouts', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              const SizedBox(height: 20),
+
+              // Banner
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFF1B4931)]),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('NEXT ESTIMATED PAYOUT', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(10)),
-                      child: const Text('Round 4 Draw', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('NEXT ESTIMATED PAYOUT', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: hasActive ? AppColors.accent : Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            hasActive ? '${_capitalize(topGroup!.frequency)} Rotation' : 'No Active Draws',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      hasActive ? '$topPayoutPot ETB' : '0 ETB',
+                      style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasActive
+                          ? '${topGroup!.name} • Scheduled ${topGroup.startDate}'
+                          : 'Join or create a group to view upcoming payout rotations.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                const Text('45,000 ETB', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 4),
-                const Text('Merkato Traders Circle • Scheduled Oct 18, 2026', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 24),
+              const Text('Upcoming Rotation Draws', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const SizedBox(height: 12),
+
+              if (!hasActive)
+                _buildEmptyStateWidget(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'No Payout Schedules',
+                  subtitle: 'Your rotation draw dates will automatically appear here once an Ekub circle is activated.',
+                )
+              else
+                ...activeGroups.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final g = entry.value;
+                  final pot = (g.contributionAmount * 10).toInt();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: _buildPayoutTile(
+                      g.name,
+                      'Turn #${idx + 1} • ${_capitalize(g.frequency)} draw',
+                      '$pot ETB',
+                      g.startDate,
+                      idx == 0 ? AppColors.accent : AppColors.primary,
+                      idx == 0,
+                    ),
+                  );
+                }),
+            ],
           ),
-
-          const SizedBox(height: 24),
-          const Text('Upcoming Rotation Draws', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          const SizedBox(height: 12),
-
-          _buildPayoutTile('Merkato Traders Circle', 'Turn #4 (Your Turn)', '45,000 ETB', 'Oct 18, 2026', AppColors.accent, true),
-          const SizedBox(height: 10),
-          _buildPayoutTile('Bole Professionals Ekub', 'Turn #2 - Abebe Bikila', '30,000 ETB', 'Nov 02, 2026', AppColors.primary, false),
-          const SizedBox(height: 10),
-          _buildPayoutTile('Habesha Family Fund', 'Turn #6 - Helina Tadesse', '15,000 ETB', 'Nov 15, 2026', AppColors.textMuted, false),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -544,31 +678,54 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
   }
 
   Widget _buildActivityTab(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.history, color: AppColors.primary, size: 28),
-              SizedBox(width: 10),
-              Text('Activity & Audit Log', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+    return BlocBuilder<GroupListBloc, GroupListState>(
+      builder: (context, state) {
+        List<Group> groups = [];
+        if (state is GroupListLoaded) {
+          groups = state.groups;
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.history, color: AppColors.primary, size: 28),
+                  SizedBox(width: 10),
+                  Text('Activity & Audit Log', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text('Verifiable ledger of contributions and automated payouts', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              const SizedBox(height: 20),
+
+              if (groups.isEmpty)
+                _buildEmptyStateWidget(
+                  icon: Icons.history_toggle_off,
+                  title: 'No Activity Logged Yet',
+                  subtitle: 'A verifiable ledger of your contributions and automated draw results will appear here.',
+                )
+              else
+                ...groups.map((g) {
+                  final isActive = g.status.toLowerCase() == 'active';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _buildActivityItem(
+                      isActive ? 'Circle Active' : 'Circle Initialized',
+                      '${g.name} • ${g.frequency.toUpperCase()} cycle',
+                      '${g.contributionAmount.toInt()} ETB',
+                      g.startDate,
+                      isActive ? Icons.check_circle : Icons.group_add,
+                      isActive ? AppColors.success : AppColors.primary,
+                    ),
+                  );
+                }),
             ],
           ),
-          const SizedBox(height: 6),
-          const Text('Verifiable ledger of contributions and automated payouts', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 20),
-
-          _buildActivityItem('Contribution Logged', 'Merkato Traders Circle • Round 3', '+3,750 ETB', 'Today, 09:42 AM', Icons.check_circle, AppColors.success),
-          const SizedBox(height: 12),
-          _buildActivityItem('Draw Conducted', 'Bole Professionals Ekub • Round 1 Winner: Almaz G.', '30,000 ETB Payout', 'Yesterday, 04:15 PM', Icons.casino, AppColors.accent),
-          const SizedBox(height: 12),
-          _buildActivityItem('Contribution Logged', 'Bole Professionals Ekub • Round 1', '+5,000 ETB', 'Oct 01, 2026', Icons.check_circle, AppColors.success),
-          const SizedBox(height: 12),
-          _buildActivityItem('Circle Created', 'Habesha Family Fund joined', 'Initialized', 'Sep 25, 2026', Icons.group_add, AppColors.primary),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -599,93 +756,123 @@ class _MyGroupsScreenState extends State<MyGroupsScreen> {
   }
 
   Widget _buildProfileTab(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          const CircleAvatar(
-            radius: 40,
-            backgroundColor: Color(0xFFD1E2C4),
-            child: Text('ST', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
-          ),
-          const SizedBox(height: 12),
-          const Text('Solomon Tadesse', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          const Text('solomon.tadesse@habesha.co', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 10),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String userName = 'Ekub User';
+        String userEmail = 'user@ekub.et';
+        String initials = 'EU';
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.verified, color: AppColors.accent, size: 16),
-                SizedBox(width: 6),
-                Text('Verified Trustee • Tier 2', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12)),
-              ],
-            ),
-          ),
+        if (state is RegisterSuccess) {
+          userName = state.user.name;
+          userEmail = state.user.email;
+          final parts = userName.trim().split(' ');
+          if (parts.length >= 2) {
+            initials = '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+          } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
+            initials = parts[0][0].toUpperCase();
+          }
+        }
 
-          const SizedBox(height: 28),
-
-          Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.shield_outlined, color: AppColors.primary),
-                  title: const Text('Security & Biometrics', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {},
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: const Color(0xFFD1E2C4),
+                child: Text(
+                  initials,
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ListTile(
-                  leading: const Icon(Icons.notifications_outlined, color: AppColors.primary),
-                  title: const Text('Payout & Draw Notifications', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {},
-                ),
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ListTile(
-                  leading: const Icon(Icons.account_balance_outlined, color: AppColors.primary),
-                  title: const Text('Linked Telebirr / Bank Account', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  subtitle: const Text('CBE •••• 4921', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {},
-                ),
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ListTile(
-                  leading: const Icon(Icons.description_outlined, color: AppColors.primary),
-                  title: const Text('Community Bylaws & Trust Terms', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/auth');
-              },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.error, width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              icon: const Icon(Icons.logout, color: AppColors.error, size: 20),
-              label: const Text('Sign out of Ekub', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 15)),
-            ),
+              const SizedBox(height: 12),
+              Text(
+                userName,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                userEmail,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 10),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.verified, color: AppColors.accent, size: 16),
+                    SizedBox(width: 6),
+                    Text('Verified Trustee • Tier 1', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              Container(
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.shield_outlined, color: AppColors.primary),
+                      title: const Text('Security & Biometrics', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () {},
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: const Icon(Icons.notifications_outlined, color: AppColors.primary),
+                      title: const Text('Payout & Draw Notifications', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () {},
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: const Icon(Icons.account_balance_outlined, color: AppColors.primary),
+                      title: const Text('Linked Account & Wallet', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      subtitle: const Text('Telebirr / Bank Account', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () {},
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: const Icon(Icons.description_outlined, color: AppColors.primary),
+                      title: const Text('Community Bylaws & Trust Terms', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacementNamed('/auth');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error, width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(Icons.logout, color: AppColors.error, size: 20),
+                  label: const Text('Sign out of Ekub', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  String _capitalize(String s) => s.isEmpty ? '' : '${s[0].toUpperCase()}${s.substring(1)}';
 }
