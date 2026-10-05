@@ -18,15 +18,21 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient apiClient;
-  final FirebaseAuth _firebaseAuth;
+  final FirebaseAuth? _firebaseAuth;
   final GoogleSignIn _googleSignIn;
 
   AuthRemoteDataSourceImpl(
     this.apiClient, {
     FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
-  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn();
+  })  : _firebaseAuth = firebaseAuth,
+        _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              serverClientId:
+                  '697090691949-dfcappnudr05pabk7d5lr20ask7o8q3v.apps.googleusercontent.com',
+            );
+
+  FirebaseAuth get firebaseAuth => _firebaseAuth ?? FirebaseAuth.instance;
 
   @override
   Future<String> login(String email, String password) async {
@@ -77,12 +83,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-    final String? idToken = await userCredential.user?.getIdToken();
-    if (idToken == null || idToken.isEmpty) {
-      throw Exception('Failed to obtain Firebase Auth ID Token.');
-    }
-    apiClient.setAuthToken(idToken);
-    return idToken;
+    final UserCredential userCredential = await firebaseAuth.signInWithCredential(credential);
+    final firebaseUser = userCredential.user;
+
+    final email = firebaseUser?.email ?? googleUser.email;
+    final name = firebaseUser?.displayName ?? googleUser.displayName ?? 'Google User';
+
+    // Exchange with Backend to register/login user and obtain backend JWT access token
+    final response = await apiClient.post(
+      '/auth/google',
+      data: {
+        'email': email,
+        'name': name,
+        'google_id': firebaseUser?.uid ?? googleUser.id,
+      },
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final token = data['access_token'] as String;
+    apiClient.setAuthToken(token);
+    return token;
   }
 }
